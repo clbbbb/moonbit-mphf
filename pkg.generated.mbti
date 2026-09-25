@@ -1,0 +1,339 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "clbbbb/moon-mphf"
+
+// Values
+pub fn compare_key_sets(Array[Int], Array[Int]) -> Result[KeySetDiff, MphfError]
+
+pub fn decode_mphf_words(Array[Int]) -> Result[Mphf, MphfError]
+
+pub fn decode_segmented_int_map_words(Array[Int]) -> Result[SegmentedIntMap, MphfError]
+
+pub fn decode_segmented_set_words(Array[Int]) -> Result[SegmentedSet, MphfError]
+
+pub fn decode_sharded_int_map_words(Array[Int]) -> Result[ShardedIntMap, MphfError]
+
+pub fn decode_sharded_set_words(Array[Int]) -> Result[ShardedSet, MphfError]
+
+pub fn decode_static_int_bimap_words(Array[Int]) -> Result[StaticIntBiMap, MphfError]
+
+pub fn decode_static_int_map_patch_words(Array[Int]) -> Result[StaticIntMapPatch, MphfError]
+
+pub fn decode_static_int_map_words(Array[Int]) -> Result[StaticIntMap, MphfError]
+
+pub fn decode_static_int_multimap_words(Array[Int]) -> Result[StaticIntMultiMap, MphfError]
+
+pub fn decode_static_set_patch_words(Array[Int]) -> Result[StaticSetPatch, MphfError]
+
+pub fn decode_static_set_words(Array[Int]) -> Result[StaticSet, MphfError]
+
+pub fn default_build_options() -> MphfBuildOptions
+
+pub fn stable_string_hash(String) -> Int
+
+// Errors
+
+// Types and methods
+pub(all) struct IntEntry {
+  key : Int
+  value : Int
+}
+
+pub(all) struct IntMultiEntry {
+  key : Int
+  value : Int
+}
+
+pub(all) struct KeySetDiff {
+  added : Array[Int]
+  removed : Array[Int]
+  retained : Int
+}
+pub fn KeySetDiff::changed_count(Self) -> Int
+pub fn KeySetDiff::is_empty(Self) -> Bool
+
+pub(all) struct LookupSummary {
+  query_count : Int
+  hit_count : Int
+  miss_count : Int
+}
+
+pub struct Mphf {
+  key_count : Int
+  vertex_count : Int
+  seed : Int
+  attempts : Int
+  values : Array[Int]
+}
+pub fn Mphf::build(Array[Int]) -> Result[Self, MphfError]
+pub fn Mphf::build_with_options(Array[Int], MphfBuildOptions) -> Result[Self, MphfError]
+pub fn Mphf::encode_words(Self) -> Array[Int]
+pub fn Mphf::is_perfect_for(Self, Array[Int]) -> Bool
+pub fn Mphf::len(Self) -> Int
+pub fn Mphf::slot_of_hash(Self, Int) -> Int?
+pub fn Mphf::stats(Self) -> MphfStats
+pub fn Mphf::validate(Self) -> Result[Unit, MphfError]
+
+pub(all) struct MphfBuildOptions {
+  vertices_per_key_milli : Int
+  max_attempts : Int
+  initial_seed : Int
+}
+
+pub(all) enum MphfError {
+  EmptyInput
+  EmptySegment(Int)
+  NegativeKey(Int)
+  DuplicateKey(Int)
+  DuplicateValue(Int)
+  DuplicateStringKey(String)
+  HashCollision(String, String)
+  ConstructionFailed(Int)
+  MissingHeader
+  UnsupportedVersion(Int)
+  InvalidPayloadLength(Int, Int)
+  InvalidMetadata
+  InvalidVertexValue(Int)
+  InvalidBuildOption(Int)
+  InvalidShardCount(Int)
+  InvalidRange(Int, Int)
+  DuplicatePatchKey(Int)
+}
+
+pub(all) struct MphfStats {
+  key_count : Int
+  vertex_count : Int
+  seed : Int
+  attempts : Int
+}
+
+pub(all) struct SegmentStats {
+  segment_count : Int
+  key_count : Int
+}
+
+pub struct SegmentedIntMap {
+  segments : Array[StaticIntMap]
+}
+pub fn SegmentedIntMap::compact(Self) -> Result[StaticIntMap, MphfError]
+pub fn SegmentedIntMap::encode_words(Self) -> Array[Int]
+pub fn SegmentedIntMap::from_batches(Array[Array[IntEntry]]) -> Result[Self, MphfError]
+pub fn SegmentedIntMap::get(Self, Int) -> Int?
+pub fn SegmentedIntMap::stats(Self) -> SegmentStats
+
+pub struct SegmentedSet {
+  segments : Array[StaticSet]
+}
+pub fn SegmentedSet::compact(Self) -> Result[StaticSet, MphfError]
+pub fn SegmentedSet::contains(Self, Int) -> Bool
+pub fn SegmentedSet::encode_words(Self) -> Array[Int]
+pub fn SegmentedSet::from_batches(Array[Array[Int]]) -> Result[Self, MphfError]
+pub fn SegmentedSet::missing(Self, Array[Int]) -> Array[Int]
+pub fn SegmentedSet::stats(Self) -> SegmentStats
+
+pub(all) struct ShardStats {
+  shard_count : Int
+  key_count : Int
+  smallest_shard : Int
+  largest_shard : Int
+}
+
+pub struct ShardedIntMap {
+  shard_count : Int
+  shards : Array[StaticIntMap?]
+}
+pub fn ShardedIntMap::compact(Self) -> Result[StaticIntMap, MphfError]
+pub fn ShardedIntMap::contains_key(Self, Int) -> Bool
+pub fn ShardedIntMap::encode_words(Self) -> Array[Int]
+pub fn ShardedIntMap::entries(Self) -> Array[IntEntry]
+pub fn ShardedIntMap::from_entries(Array[IntEntry], Int) -> Result[Self, MphfError]
+pub fn ShardedIntMap::get(Self, Int) -> Int?
+pub fn ShardedIntMap::get_many(Self, Array[Int]) -> Array[Int?]
+pub fn ShardedIntMap::query_summary(Self, Array[Int]) -> LookupSummary
+pub fn ShardedIntMap::reshard(Self, Int) -> Result[Self, MphfError]
+pub fn ShardedIntMap::stats(Self) -> ShardStats
+
+pub struct ShardedSet {
+  shard_count : Int
+  shards : Array[StaticSet?]
+}
+pub fn ShardedSet::compact(Self) -> Result[StaticSet, MphfError]
+pub fn ShardedSet::contains(Self, Int) -> Bool
+pub fn ShardedSet::encode_words(Self) -> Array[Int]
+pub fn ShardedSet::filter_missing(Self, Array[Int]) -> Array[Int]
+pub fn ShardedSet::from_keys(Array[Int], Int) -> Result[Self, MphfError]
+pub fn ShardedSet::keys(Self) -> Array[Int]
+pub fn ShardedSet::query_summary(Self, Array[Int]) -> LookupSummary
+pub fn ShardedSet::reshard(Self, Int) -> Result[Self, MphfError]
+pub fn ShardedSet::stats(Self) -> ShardStats
+
+pub(all) struct StaticIndexFingerprint {
+  key_count : Int
+  key_fingerprint : Int
+  value_fingerprint : Int
+}
+
+pub struct StaticIntBiMap {
+  forward : StaticIntMap
+  reverse : StaticIntMap
+}
+pub fn StaticIntBiMap::contains_key(Self, Int) -> Bool
+pub fn StaticIntBiMap::contains_value(Self, Int) -> Bool
+pub fn StaticIntBiMap::encode_words(Self) -> Array[Int]
+pub fn StaticIntBiMap::entries_by_key(Self) -> Array[IntEntry]
+pub fn StaticIntBiMap::from_entries(Array[IntEntry]) -> Result[Self, MphfError]
+pub fn StaticIntBiMap::get_by_key(Self, Int) -> Int?
+pub fn StaticIntBiMap::get_by_value(Self, Int) -> Int?
+pub fn StaticIntBiMap::len(Self) -> Int
+pub fn StaticIntBiMap::stats(Self) -> MphfStats
+pub fn StaticIntBiMap::validate(Self) -> Result[Unit, MphfError]
+
+pub struct StaticIntMap {
+  mphf : Mphf
+  keys_by_slot : Array[Int]
+  values_by_slot : Array[Int]
+}
+pub fn StaticIntMap::apply_patch(Self, StaticIntMapPatch) -> Result[Self, MphfError]
+pub fn StaticIntMap::contains_key(Self, Int) -> Bool
+pub fn StaticIntMap::content_equals(Self, Self) -> Bool
+pub fn StaticIntMap::cursor(Self) -> StaticIntMapCursor
+pub fn StaticIntMap::cursor_at(Self, Int) -> Result[StaticIntMapCursor, MphfError]
+pub fn StaticIntMap::encode_words(Self) -> Array[Int]
+pub fn StaticIntMap::entries_by_slot(Self) -> Array[IntEntry]
+pub fn StaticIntMap::fingerprint(Self) -> StaticIndexFingerprint
+pub fn StaticIntMap::from_entries(Array[IntEntry]) -> Result[Self, MphfError]
+pub fn StaticIntMap::from_entries_with_options(Array[IntEntry], MphfBuildOptions) -> Result[Self, MphfError]
+pub fn StaticIntMap::get(Self, Int) -> Int?
+pub fn StaticIntMap::get_many(Self, Array[Int]) -> Array[Int?]
+pub fn StaticIntMap::keys_by_slot(Self) -> Array[Int]
+pub fn StaticIntMap::len(Self) -> Int
+pub fn StaticIntMap::merge_prefer_right(Self, Self) -> Result[Self, MphfError]
+pub fn StaticIntMap::query_summary(Self, Array[Int]) -> LookupSummary
+pub fn StaticIntMap::stats(Self) -> MphfStats
+pub fn StaticIntMap::validate(Self) -> Result[Unit, MphfError]
+
+pub struct StaticIntMapCursor {
+  keys_by_slot : Array[Int]
+  values_by_slot : Array[Int]
+  next_slot : Int
+}
+pub fn StaticIntMapCursor::collect_remaining(Self) -> Array[IntEntry]
+pub fn StaticIntMapCursor::next(Self) -> (IntEntry?, Self)
+pub fn StaticIntMapCursor::remaining(Self) -> Int
+
+pub(all) struct StaticIntMapPatch {
+  upserts : Array[IntEntry]
+  removals : Array[Int]
+}
+pub fn StaticIntMapPatch::encode_words(Self) -> Array[Int]
+pub fn StaticIntMapPatch::new(Array[IntEntry], Array[Int]) -> Result[Self, MphfError]
+pub fn StaticIntMapPatch::removal_count(Self) -> Int
+pub fn StaticIntMapPatch::removals(Self) -> Array[Int]
+pub fn StaticIntMapPatch::upsert_count(Self) -> Int
+pub fn StaticIntMapPatch::upserts(Self) -> Array[IntEntry]
+
+pub struct StaticIntMultiMap {
+  mphf : Mphf
+  keys_by_slot : Array[Int]
+  offsets_by_slot : Array[Int]
+  values : Array[Int]
+}
+pub fn StaticIntMultiMap::cursor(Self) -> StaticIntMultiMapCursor
+pub fn StaticIntMultiMap::encode_words(Self) -> Array[Int]
+pub fn StaticIntMultiMap::entries(Self) -> Array[IntMultiEntry]
+pub fn StaticIntMultiMap::from_entries(Array[IntMultiEntry]) -> Result[Self, MphfError]
+pub fn StaticIntMultiMap::get_all(Self, Int) -> Array[Int]
+pub fn StaticIntMultiMap::get_all_many(Self, Array[Int]) -> Array[Array[Int]]
+pub fn StaticIntMultiMap::len(Self) -> Int
+pub fn StaticIntMultiMap::stats(Self) -> MphfStats
+pub fn StaticIntMultiMap::validate(Self) -> Result[Unit, MphfError]
+pub fn StaticIntMultiMap::value_count(Self) -> Int
+pub fn StaticIntMultiMap::value_count_for(Self, Int) -> Int
+
+pub struct StaticIntMultiMapCursor {
+  keys_by_slot : Array[Int]
+  offsets_by_slot : Array[Int]
+  values : Array[Int]
+  slot : Int
+  value_index : Int
+}
+pub fn StaticIntMultiMapCursor::collect_remaining(Self) -> Array[IntMultiEntry]
+pub fn StaticIntMultiMapCursor::next(Self) -> (IntMultiEntry?, Self)
+pub fn StaticIntMultiMapCursor::remaining(Self) -> Int
+
+pub struct StaticSet {
+  mphf : Mphf
+  keys_by_slot : Array[Int]
+}
+pub fn StaticSet::apply_patch(Self, StaticSetPatch) -> Result[Self, MphfError]
+pub fn StaticSet::contains(Self, Int) -> Bool
+pub fn StaticSet::contains_all(Self, Array[Int]) -> Bool
+pub fn StaticSet::content_equals(Self, Self) -> Bool
+pub fn StaticSet::cursor(Self) -> StaticSetCursor
+pub fn StaticSet::cursor_at(Self, Int) -> Result[StaticSetCursor, MphfError]
+pub fn StaticSet::diff_to(Self, Self) -> KeySetDiff
+pub fn StaticSet::difference(Self, Self) -> Result[Self, MphfError]
+pub fn StaticSet::encode_words(Self) -> Array[Int]
+pub fn StaticSet::filter_missing(Self, Array[Int]) -> Array[Int]
+pub fn StaticSet::filter_present(Self, Array[Int]) -> Array[Int]
+pub fn StaticSet::fingerprint(Self) -> StaticIndexFingerprint
+pub fn StaticSet::from_keys(Array[Int]) -> Result[Self, MphfError]
+pub fn StaticSet::from_keys_with_options(Array[Int], MphfBuildOptions) -> Result[Self, MphfError]
+pub fn StaticSet::intersection(Self, Self) -> Result[Self, MphfError]
+pub fn StaticSet::is_subset_of(Self, Self) -> Bool
+pub fn StaticSet::keys_by_slot(Self) -> Array[Int]
+pub fn StaticSet::len(Self) -> Int
+pub fn StaticSet::overlaps(Self, Self) -> Bool
+pub fn StaticSet::query_summary(Self, Array[Int]) -> LookupSummary
+pub fn StaticSet::stats(Self) -> MphfStats
+pub fn StaticSet::symmetric_difference(Self, Self) -> Result[Self, MphfError]
+pub fn StaticSet::union(Self, Self) -> Result[Self, MphfError]
+pub fn StaticSet::validate(Self) -> Result[Unit, MphfError]
+
+pub struct StaticSetCursor {
+  keys_by_slot : Array[Int]
+  next_slot : Int
+}
+pub fn StaticSetCursor::collect_remaining(Self) -> Array[Int]
+pub fn StaticSetCursor::is_exhausted(Self) -> Bool
+pub fn StaticSetCursor::next(Self) -> (Int?, Self)
+pub fn StaticSetCursor::remaining(Self) -> Int
+
+pub(all) struct StaticSetPatch {
+  additions : Array[Int]
+  removals : Array[Int]
+}
+pub fn StaticSetPatch::addition_count(Self) -> Int
+pub fn StaticSetPatch::additions(Self) -> Array[Int]
+pub fn StaticSetPatch::encode_words(Self) -> Array[Int]
+pub fn StaticSetPatch::new(Array[Int], Array[Int]) -> Result[Self, MphfError]
+pub fn StaticSetPatch::removal_count(Self) -> Int
+pub fn StaticSetPatch::removals(Self) -> Array[Int]
+
+pub struct StaticStringIntMap {
+  mphf : Mphf
+  keys_by_slot : Array[String]
+  values_by_slot : Array[Int]
+}
+pub fn StaticStringIntMap::contains_key(Self, String) -> Bool
+pub fn StaticStringIntMap::from_entries(Array[StringIntEntry]) -> Result[Self, MphfError]
+pub fn StaticStringIntMap::get(Self, String) -> Int?
+pub fn StaticStringIntMap::len(Self) -> Int
+
+pub struct StaticStringSet {
+  mphf : Mphf
+  keys_by_slot : Array[String]
+}
+pub fn StaticStringSet::contains(Self, String) -> Bool
+pub fn StaticStringSet::from_keys(Array[String]) -> Result[Self, MphfError]
+pub fn StaticStringSet::len(Self) -> Int
+pub fn StaticStringSet::stats(Self) -> MphfStats
+
+pub(all) struct StringIntEntry {
+  key : String
+  value : Int
+}
+
+// Type aliases
+
+// Traits
+
