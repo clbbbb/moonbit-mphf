@@ -11,3 +11,5 @@ keywords = [ "minimal-perfect-hash", "mphf", "static-map", "index" ]
 preferred_target = "wasm"
 
 description = "Pure MoonBit minimal perfect hash functions and checked static maps"
+
+repository = "https://github.com/clbbbb/moonbit-mphf"
