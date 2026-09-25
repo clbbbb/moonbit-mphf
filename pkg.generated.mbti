@@ -26,6 +26,10 @@ pub fn decode_static_set_patch_words(Array[Int]) -> Result[StaticSetPatch, MphfE
 
 pub fn decode_static_set_words(Array[Int]) -> Result[StaticSet, MphfError]
 
+pub fn decode_static_string_int_map_words(Array[Int]) -> Result[StaticStringIntMap, MphfError]
+
+pub fn decode_static_string_set_words(Array[Int]) -> Result[StaticStringSet, MphfError]
+
 pub fn default_build_options() -> MphfBuildOptions
 
 pub fn stable_string_hash(String) -> Int
@@ -151,6 +155,7 @@ pub fn ShardedIntMap::get_many(Self, Array[Int]) -> Array[Int?]
 pub fn ShardedIntMap::query_summary(Self, Array[Int]) -> LookupSummary
 pub fn ShardedIntMap::reshard(Self, Int) -> Result[Self, MphfError]
 pub fn ShardedIntMap::stats(Self) -> ShardStats
+pub fn ShardedIntMap::validate(Self) -> Result[Unit, MphfError]
 
 pub struct ShardedSet {
   shard_count : Int
@@ -165,6 +170,7 @@ pub fn ShardedSet::keys(Self) -> Array[Int]
 pub fn ShardedSet::query_summary(Self, Array[Int]) -> LookupSummary
 pub fn ShardedSet::reshard(Self, Int) -> Result[Self, MphfError]
 pub fn ShardedSet::stats(Self) -> ShardStats
+pub fn ShardedSet::validate(Self) -> Result[Unit, MphfError]
 
 pub(all) struct StaticIndexFingerprint {
   key_count : Int
@@ -315,6 +321,7 @@ pub struct StaticStringIntMap {
   values_by_slot : Array[Int]
 }
 pub fn StaticStringIntMap::contains_key(Self, String) -> Bool
+pub fn StaticStringIntMap::encode_words(Self) -> Array[Int]
 pub fn StaticStringIntMap::from_entries(Array[StringIntEntry]) -> Result[Self, MphfError]
 pub fn StaticStringIntMap::get(Self, String) -> Int?
 pub fn StaticStringIntMap::len(Self) -> Int
@@ -324,6 +331,7 @@ pub struct StaticStringSet {
   keys_by_slot : Array[String]
 }
 pub fn StaticStringSet::contains(Self, String) -> Bool
+pub fn StaticStringSet::encode_words(Self) -> Array[Int]
 pub fn StaticStringSet::from_keys(Array[String]) -> Result[Self, MphfError]
 pub fn StaticStringSet::len(Self) -> Int
 pub fn StaticStringSet::stats(Self) -> MphfStats

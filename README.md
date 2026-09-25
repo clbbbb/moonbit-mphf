@@ -52,9 +52,13 @@ moon run cmd/main
 - `StaticIntMultiMap` indexes distinct keys once and retains each key's values
   in input order. `StaticIntBiMap` provides checked forward and reverse exact
   lookup for one-to-one non-negative integer mappings.
+- `StaticStringSet` and `StaticStringIntMap` have versioned Unicode-scalar
+  word encodings. Decoding validates every scalar and reruns exact MPHF-slot
+  routing checks before exposing a loaded string index.
 - `ShardedSet` and `ShardedIntMap` route `key % shard_count` to one MPHF,
   supporting bounded builds, deterministic re-sharding, compaction, and
-  checked nested encodings.
+  checked nested encodings. Their `validate` methods also verify a received
+  in-memory shard layout and every key's residue routing.
 - Static set/map patches model immutable rebuilds explicitly and can be stored
   as validated word streams. Persistent cursors support checkpointed scans
   without mutating a published index.

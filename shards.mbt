@@ -113,6 +113,42 @@ pub fn ShardedSet::query_summary(
 }
 
 ///|
+/// Verify every present set shard is structurally valid and that every stored
+/// key belongs to its recorded residue class. This is useful after receiving a
+/// sharded index through a transport other than `decode_sharded_set_words`.
+pub fn ShardedSet::validate(self : ShardedSet) -> Result[Unit, MphfError] {
+  match validate_shard_count(self.shard_count) {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  if self.shards.length() != self.shard_count {
+    return Err(InvalidPayloadLength(self.shard_count, self.shards.length()))
+  }
+  let mut key_count = 0
+  for index in 0..<self.shards.length() {
+    match self.shards[index] {
+      None => ()
+      Some(shard) => {
+        match shard.validate() {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+        for key in shard.keys_by_slot() {
+          if key % self.shard_count != index {
+            return Err(InvalidMetadata)
+          }
+        }
+        key_count += shard.len()
+      }
+    }
+  }
+  if key_count == 0 {
+    return Err(EmptyInput)
+  }
+  Ok(())
+}
+
+///|
 /// Build a fixed-count sharded map. Duplicate keys are rejected in their own
 /// residue shard, which is equivalent to rejecting them globally.
 pub fn ShardedIntMap::from_entries(
@@ -247,6 +283,41 @@ pub fn ShardedIntMap::query_summary(
     hit_count: hits,
     miss_count: keys.length() - hits,
   }
+}
+
+///|
+/// Verify every present map shard and its residue routing. Map values are
+/// unconstrained; only exact keys participate in the sharding rule.
+pub fn ShardedIntMap::validate(self : ShardedIntMap) -> Result[Unit, MphfError] {
+  match validate_shard_count(self.shard_count) {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  if self.shards.length() != self.shard_count {
+    return Err(InvalidPayloadLength(self.shard_count, self.shards.length()))
+  }
+  let mut key_count = 0
+  for index in 0..<self.shards.length() {
+    match self.shards[index] {
+      None => ()
+      Some(shard) => {
+        match shard.validate() {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+        for entry in shard.entries_by_slot() {
+          if entry.key % self.shard_count != index {
+            return Err(InvalidMetadata)
+          }
+        }
+        key_count += shard.len()
+      }
+    }
+  }
+  if key_count == 0 {
+    return Err(EmptyInput)
+  }
+  Ok(())
 }
 
 ///|

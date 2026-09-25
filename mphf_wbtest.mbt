@@ -197,6 +197,34 @@ test "static string sets and maps are exact" {
 }
 
 ///|
+/// String codecs use Unicode scalar words rather than platform byte layouts,
+/// preserving exact text and values across a checked encode/decode round trip.
+test "static string codecs preserve unicode and reject invalid scalars" {
+  let set = StaticStringSet::from_keys(["MoonBit", "月亮", "🦀"]).unwrap()
+  let decoded_set = decode_static_string_set_words(set.encode_words()).unwrap()
+  assert_true(decoded_set.contains("MoonBit"))
+  assert_true(decoded_set.contains("月亮"))
+  assert_true(decoded_set.contains("🦀"))
+  assert_true(!decoded_set.contains("moonbit"))
+
+  let routes = StaticStringIntMap::from_entries([
+    { key: "GET /健康", value: 200 },
+    { key: "POST /用户", value: 201 },
+    { key: "🦀", value: -7 },
+  ]).unwrap()
+  let decoded_routes = decode_static_string_int_map_words(routes.encode_words()).unwrap()
+  assert_eq(decoded_routes.get("GET /健康"), Some(200))
+  assert_eq(decoded_routes.get("🦀"), Some(-7))
+  assert_eq(decoded_routes.get("DELETE /用户"), None)
+
+  let malformed = set.encode_words()
+  let first_string = 2 + malformed[1]
+  malformed[first_string + 1] = 0xd800
+  assert_true(decode_static_string_set_words(malformed) is Err(InvalidMetadata))
+  assert_true(decode_static_string_int_map_words([14, 1, 1]) is Err(_))
+}
+
+///|
 /// A multimap indexes distinct keys once while keeping every associated value
 /// in source order, which is useful for immutable inverted indexes.
 test "static multimap groups values and validates word ranges" {
@@ -238,6 +266,7 @@ test "sharded containers route and round trip" {
   assert_true(!set.contains(-1))
   assert_eq(set.stats().key_count, 7)
   assert_eq(set.stats().shard_count, 4)
+  assert_true(set.validate() is Ok(_))
   let decoded_set = decode_sharded_set_words(set.encode_words()).unwrap()
   assert_true(decoded_set.contains(14))
   assert_true(!decoded_set.contains(15))
@@ -254,6 +283,7 @@ test "sharded containers route and round trip" {
   assert_eq(map.get(6), Some(60))
   assert_eq(map.get(7), None)
   assert_eq(map.stats().largest_shard, 3)
+  assert_true(map.validate() is Ok(_))
   let decoded_map = decode_sharded_int_map_words(map.encode_words()).unwrap()
   assert_eq(decoded_map.get(14), Some(140))
   assert_true(ShardedSet::from_keys([1], 0) is Err(InvalidShardCount(0)))
