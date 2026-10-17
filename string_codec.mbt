@@ -32,7 +32,7 @@ pub fn decode_static_string_set_words(
     return Err(InvalidPayloadLength(stop, words.length()))
   }
   match validate_string_slot_keys(mphf, keys_by_slot) {
-    Ok(_) => Ok({ mphf, keys_by_slot })
+    Ok(_) => Ok({ mphf, keys_by_slot, })
     Err(error) => Err(error)
   }
 }
@@ -81,7 +81,7 @@ pub fn decode_static_string_int_map_words(
     values_by_slot.push(words[index])
   }
   match validate_string_slot_keys(mphf, keys_by_slot) {
-    Ok(_) => Ok({ mphf, keys_by_slot, values_by_slot })
+    Ok(_) => Ok({ mphf, keys_by_slot, values_by_slot, })
     Err(error) => Err(error)
   }
 }

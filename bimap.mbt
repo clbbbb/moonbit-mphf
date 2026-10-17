@@ -13,7 +13,7 @@ pub fn StaticIntBiMap::from_entries(
     if entry.value < 0 {
       return Err(NegativeKey(entry.value))
     }
-    reverse_entries.push({ key: entry.value, value: entry.key })
+    reverse_entries.push({ key: entry.value, value: entry.key, })
     values.push(entry.value)
   }
   values.sort()
@@ -30,7 +30,7 @@ pub fn StaticIntBiMap::from_entries(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok({ forward, reverse })
+  Ok({ forward, reverse, })
 }
 
 ///|
@@ -156,7 +156,7 @@ pub fn decode_static_int_bimap_words(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let bimap = { forward, reverse }
+  let bimap = { forward, reverse, }
   match bimap.validate() {
     Ok(_) => Ok(bimap)
     Err(error) => Err(error)

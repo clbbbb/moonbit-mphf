@@ -102,7 +102,7 @@ pub fn decode_static_int_map_patch_words(
   let upserts : Array[IntEntry] = []
   let mut cursor = 2
   for _ in 0..<upsert_count {
-    upserts.push({ key: words[cursor], value: words[cursor + 1] })
+    upserts.push({ key: words[cursor], value: words[cursor + 1], })
     cursor += 2
   }
   let removals = patch_word_slice(words, removal_count_position + 1, expected)

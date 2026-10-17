@@ -26,7 +26,7 @@ pub fn ShardedSet::from_keys(
       shards.push(Some(set))
     }
   }
-  Ok({ shard_count, shards })
+  Ok({ shard_count, shards, })
 }
 
 ///|
@@ -175,7 +175,7 @@ pub fn ShardedIntMap::from_entries(
       shards.push(Some(map))
     }
   }
-  Ok({ shard_count, shards })
+  Ok({ shard_count, shards, })
 }
 
 ///|
@@ -396,7 +396,7 @@ pub fn decode_sharded_set_words(
   if key_count == 0 {
     return Err(EmptyInput)
   }
-  Ok({ shard_count, shards })
+  Ok({ shard_count, shards, })
 }
 
 ///|
@@ -474,7 +474,7 @@ pub fn decode_sharded_int_map_words(
   if key_count == 0 {
     return Err(EmptyInput)
   }
-  Ok({ shard_count, shards })
+  Ok({ shard_count, shards, })
 }
 
 ///|

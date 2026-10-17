@@ -36,9 +36,9 @@ test "static set performs exact membership" {
 /// Static maps preserve values by storing keys and values in the same slot order.
 test "static integer map returns matching values only" {
   let table = StaticIntMap::from_entries([
-    { key: 7, value: 70 },
-    { key: 11, value: 110 },
-    { key: 41, value: 410 },
+    { key: 7, value: 70, },
+    { key: 11, value: 110, },
+    { key: 41, value: 410, },
   ]).unwrap()
   assert_eq(table.get(7), Some(70))
   assert_eq(table.get(11), Some(110))
@@ -54,7 +54,7 @@ test "invalid public key sets are explicit" {
   assert_true(Mphf::build([1, -2]) is Err(NegativeKey(-2)))
   assert_true(Mphf::build([1, 3, 1]) is Err(DuplicateKey(1)))
   assert_true(
-    StaticIntMap::from_entries([{ key: 9, value: 1 }, { key: 9, value: 2 }])
+    StaticIntMap::from_entries([{ key: 9, value: 1, }, { key: 9, value: 2, }])
     is Err(DuplicateKey(9)),
   )
 }
@@ -83,9 +83,9 @@ test "static set and map codecs preserve exact queries" {
   assert_true(!decoded_set.contains(3))
 
   let table = StaticIntMap::from_entries([
-    { key: 2, value: 20 },
-    { key: 8, value: 80 },
-    { key: 32, value: 320 },
+    { key: 2, value: 20, },
+    { key: 8, value: 80, },
+    { key: 32, value: 320, },
   ]).unwrap()
   let decoded_table = decode_static_int_map_words(table.encode_words()).unwrap()
   assert_eq(decoded_table.get(2), Some(20))
@@ -137,8 +137,8 @@ test "segmented sets support union queries and compaction" {
 /// Later immutable map batches deliberately override prior values.
 test "segmented maps implement newest-value precedence" {
   let index = SegmentedIntMap::from_batches([
-    [{ key: 1, value: 10 }, { key: 2, value: 20 }],
-    [{ key: 2, value: 200 }, { key: 3, value: 30 }],
+    [{ key: 1, value: 10, }, { key: 2, value: 20, }],
+    [{ key: 2, value: 200, }, { key: 3, value: 30, }],
   ]).unwrap()
   assert_eq(index.get(1), Some(10))
   assert_eq(index.get(2), Some(200))
@@ -188,8 +188,8 @@ test "static string sets and maps are exact" {
   )
 
   let routes = StaticStringIntMap::from_entries([
-    { key: "GET /health", value: 200 },
-    { key: "POST /users", value: 201 },
+    { key: "GET /health", value: 200, },
+    { key: "POST /users", value: 201, },
   ]).unwrap()
   assert_eq(routes.get("POST /users"), Some(201))
   assert_eq(routes.get("DELETE /users"), None)
@@ -208,9 +208,9 @@ test "static string codecs preserve unicode and reject invalid scalars" {
   assert_true(!decoded_set.contains("moonbit"))
 
   let routes = StaticStringIntMap::from_entries([
-    { key: "GET /健康", value: 200 },
-    { key: "POST /用户", value: 201 },
-    { key: "🦀", value: -7 },
+    { key: "GET /健康", value: 200, },
+    { key: "POST /用户", value: 201, },
+    { key: "🦀", value: -7, },
   ]).unwrap()
   let decoded_routes = decode_static_string_int_map_words(routes.encode_words()).unwrap()
   assert_eq(decoded_routes.get("GET /健康"), Some(200))
@@ -229,11 +229,11 @@ test "static string codecs preserve unicode and reject invalid scalars" {
 /// in source order, which is useful for immutable inverted indexes.
 test "static multimap groups values and validates word ranges" {
   let index = StaticIntMultiMap::from_entries([
-    { key: 8, value: 80 },
-    { key: 3, value: 30 },
-    { key: 8, value: 81 },
-    { key: 3, value: 31 },
-    { key: 9, value: 90 },
+    { key: 8, value: 80, },
+    { key: 3, value: 30, },
+    { key: 8, value: 81, },
+    { key: 3, value: 31, },
+    { key: 9, value: 90, },
   ]).unwrap()
   assert_eq(index.len(), 3)
   assert_eq(index.value_count(), 5)
@@ -250,7 +250,7 @@ test "static multimap groups values and validates word ranges" {
   assert_eq(decode_static_int_multimap_words(broken).unwrap().get_all(9), [91])
   assert_true(StaticIntMultiMap::from_entries([]) is Err(EmptyInput))
   assert_true(
-    StaticIntMultiMap::from_entries([{ key: -1, value: 2 }])
+    StaticIntMultiMap::from_entries([{ key: -1, value: 2, }])
     is Err(NegativeKey(-1)),
   )
 }
@@ -273,10 +273,10 @@ test "sharded containers route and round trip" {
 
   let map = ShardedIntMap::from_entries(
     [
-      { key: 1, value: 10 },
-      { key: 2, value: 20 },
-      { key: 6, value: 60 },
-      { key: 14, value: 140 },
+      { key: 1, value: 10, },
+      { key: 2, value: 20, },
+      { key: 6, value: 60, },
+      { key: 14, value: 140, },
     ],
     4,
   ).unwrap()
@@ -288,7 +288,7 @@ test "sharded containers route and round trip" {
   assert_eq(decoded_map.get(14), Some(140))
   assert_true(ShardedSet::from_keys([1], 0) is Err(InvalidShardCount(0)))
   assert_true(
-    ShardedIntMap::from_entries([{ key: -1, value: 0 }], 2)
+    ShardedIntMap::from_entries([{ key: -1, value: 0, }], 2)
     is Err(NegativeKey(-1)),
   )
 }
@@ -298,9 +298,9 @@ test "sharded containers route and round trip" {
 /// behavior through the versioned layered-map encoding.
 test "segmented maps compact and encode deterministically" {
   let layered = SegmentedIntMap::from_batches([
-    [{ key: 1, value: 10 }, { key: 2, value: 20 }],
-    [{ key: 2, value: 200 }, { key: 3, value: 30 }],
-    [{ key: 1, value: 100 }],
+    [{ key: 1, value: 10, }, { key: 2, value: 20, }],
+    [{ key: 2, value: 200, }, { key: 3, value: 30, }],
+    [{ key: 1, value: 100, }],
   ]).unwrap()
   let compacted = layered.compact().unwrap()
   assert_eq(compacted.get(1), Some(100))
@@ -343,18 +343,18 @@ test "patches and algebra rebuild checked static snapshots" {
   assert_true(StaticSetPatch::new([1, 1], []) is Err(DuplicatePatchKey(1)))
 
   let base_map = StaticIntMap::from_entries([
-    { key: 1, value: 10 },
-    { key: 2, value: 20 },
+    { key: 1, value: 10, },
+    { key: 2, value: 20, },
   ]).unwrap()
   let map_patch = StaticIntMapPatch::new(
-    [{ key: 2, value: 200 }, { key: 3, value: 30 }],
+    [{ key: 2, value: 200, }, { key: 3, value: 30, }],
     [1],
   ).unwrap()
   let patched = base_map.apply_patch(map_patch).unwrap()
   assert_eq(patched.get_many([1, 2, 3, 4]), [None, Some(200), Some(30), None])
   assert_eq(patched.query_summary([1, 2, 3, 4]).miss_count, 2)
   assert_true(
-    StaticIntMapPatch::new([{ key: 2, value: 1 }], [2])
+    StaticIntMapPatch::new([{ key: 2, value: 1, }], [2])
     is Err(DuplicatePatchKey(2)),
   )
 }
@@ -380,16 +380,16 @@ test "options validation and source fingerprints are meaningful" {
     is Err(InvalidBuildOption(1100)),
   )
   let left = StaticIntMap::from_entries([
-    { key: 1, value: 10 },
-    { key: 2, value: 20 },
+    { key: 1, value: 10, },
+    { key: 2, value: 20, },
   ]).unwrap()
   let equal = StaticIntMap::from_entries([
-    { key: 2, value: 20 },
-    { key: 1, value: 10 },
+    { key: 2, value: 20, },
+    { key: 1, value: 10, },
   ]).unwrap()
   let changed = StaticIntMap::from_entries([
-    { key: 1, value: 10 },
-    { key: 2, value: 21 },
+    { key: 1, value: 10, },
+    { key: 2, value: 21, },
   ]).unwrap()
   assert_eq(left.fingerprint().key_count, equal.fingerprint().key_count)
   assert_eq(
@@ -425,8 +425,8 @@ test "persistent cursors scan slot ordered containers" {
   assert_true(set.cursor_at(4) is Err(InvalidRange(4, 3)))
 
   let map = StaticIntMap::from_entries([
-    { key: 2, value: 20 },
-    { key: 4, value: 40 },
+    { key: 2, value: 20, },
+    { key: 4, value: 40, },
   ]).unwrap()
   let (entry, map_after) = map.cursor().next()
   match entry {
@@ -437,9 +437,9 @@ test "persistent cursors scan slot ordered containers" {
   assert_eq(map.cursor_at(2).unwrap().remaining(), 0)
 
   let multi = StaticIntMultiMap::from_entries([
-    { key: 1, value: 10 },
-    { key: 1, value: 11 },
-    { key: 3, value: 30 },
+    { key: 1, value: 10, },
+    { key: 1, value: 11, },
+    { key: 3, value: 30, },
   ]).unwrap()
   let cursor = multi.cursor()
   assert_eq(cursor.remaining(), 3)
@@ -469,7 +469,7 @@ test "patch codecs round trip and defend length fields" {
   assert_true(decode_static_set_patch_words([10, 8, 1]) is Err(InvalidMetadata))
 
   let map_patch = StaticIntMapPatch::new(
-    [{ key: 7, value: 70 }, { key: 2, value: 20 }],
+    [{ key: 7, value: 70, }, { key: 2, value: 20, }],
     [4],
   ).unwrap()
   let decoded_map_patch = decode_static_int_map_patch_words(
@@ -479,8 +479,8 @@ test "patch codecs round trip and defend length fields" {
   assert_eq(decoded_map_patch.upserts()[0].key, 2)
   assert_eq(decoded_map_patch.removals(), [4])
   let map = StaticIntMap::from_entries([
-    { key: 4, value: 40 },
-    { key: 5, value: 50 },
+    { key: 4, value: 40, },
+    { key: 5, value: 50, },
   ]).unwrap()
   let rebuilt = map.apply_patch(decoded_map_patch).unwrap()
   assert_eq(rebuilt.get(4), None)
@@ -496,9 +496,9 @@ test "patch codecs round trip and defend length fields" {
 /// independently valid maps that fail the inverse-pair invariant.
 test "bidirectional maps provide checked reverse lookup" {
   let index = StaticIntBiMap::from_entries([
-    { key: 10, value: 100 },
-    { key: 20, value: 200 },
-    { key: 30, value: 300 },
+    { key: 10, value: 100, },
+    { key: 20, value: 200, },
+    { key: 30, value: 300, },
   ]).unwrap()
   assert_eq(index.len(), 3)
   assert_eq(index.get_by_key(20), Some(200))
@@ -511,11 +511,11 @@ test "bidirectional maps provide checked reverse lookup" {
   assert_eq(decoded.get_by_key(30), Some(300))
   assert_eq(decoded.get_by_value(100), Some(10))
   assert_true(
-    StaticIntBiMap::from_entries([{ key: 1, value: 9 }, { key: 2, value: 9 }])
+    StaticIntBiMap::from_entries([{ key: 1, value: 9, }, { key: 2, value: 9, }])
     is Err(DuplicateValue(9)),
   )
   assert_true(
-    StaticIntBiMap::from_entries([{ key: 1, value: -9 }])
+    StaticIntBiMap::from_entries([{ key: 1, value: -9, }])
     is Err(NegativeKey(-9)),
   )
 }
@@ -536,7 +536,7 @@ test "shard compaction and configurable containers preserve content" {
   assert_eq(resharded.query_summary([2, 4, 17, 19]).hit_count, 2)
 
   let map = ShardedIntMap::from_entries(
-    [{ key: 2, value: 20 }, { key: 7, value: 70 }, { key: 13, value: 130 }],
+    [{ key: 2, value: 20, }, { key: 7, value: 70, }, { key: 13, value: 130, }],
     2,
   ).unwrap()
   let remapped = map.reshard(5).unwrap()
@@ -561,7 +561,7 @@ test "shard compaction and configurable containers preserve content" {
     options,
   ).unwrap()
   let tuned_map = StaticIntMap::from_entries_with_options(
-    [{ key: 4, value: 40 }, { key: 8, value: 80 }, { key: 15, value: 150 }],
+    [{ key: 4, value: 40, }, { key: 8, value: 80, }, { key: 15, value: 150, }],
     options,
   ).unwrap()
   assert_true(tuned_set.contains(42))
@@ -586,7 +586,7 @@ test "container variants agree across deterministic corpora" {
     for offset in 0..<(case_id + 5) {
       let key = case_id * 50_021 + offset * (case_id * 7 + 3)
       keys.push(key)
-      entries.push({ key, value: key + case_id })
+      entries.push({ key, value: key + case_id, })
     }
     let direct_set = StaticSet::from_keys(keys).unwrap()
     let direct_map = StaticIntMap::from_entries(entries).unwrap()
@@ -623,8 +623,8 @@ test "nested codecs reject semantic cross-payload corruption" {
   assert_true(decode_sharded_set_words(malformed) is Err(EmptyInput))
 
   let bimap = StaticIntBiMap::from_entries([
-    { key: 1, value: 10 },
-    { key: 2, value: 20 },
+    { key: 1, value: 10, },
+    { key: 2, value: 20, },
   ]).unwrap()
   let bimap_words = bimap.encode_words()
   assert_true(decode_static_int_bimap_words(bimap_words) is Ok(_))
@@ -637,8 +637,8 @@ test "nested codecs reject semantic cross-payload corruption" {
 /// distinct source key.
 test "decoders reject empty multimap ranges and extreme length fields" {
   let multi = StaticIntMultiMap::from_entries([
-    { key: 4, value: 40 },
-    { key: 9, value: 90 },
+    { key: 4, value: 40, },
+    { key: 9, value: 90, },
   ]).unwrap()
   let malformed_range = multi.encode_words()
   let mphf_length = malformed_range[1]
@@ -684,23 +684,23 @@ test "decoders reject empty multimap ranges and extreme length fields" {
 test "all encoded artifact prefixes are rejected" {
   let set = StaticSet::from_keys([4, 9, 16, 25]).unwrap()
   let map = StaticIntMap::from_entries([
-    { key: 4, value: 40 },
-    { key: 9, value: 90 },
-    { key: 16, value: 160 },
+    { key: 4, value: 40, },
+    { key: 9, value: 90, },
+    { key: 16, value: 160, },
   ]).unwrap()
   let multi = StaticIntMultiMap::from_entries([
-    { key: 4, value: 40 },
-    { key: 4, value: 41 },
-    { key: 9, value: 90 },
+    { key: 4, value: 40, },
+    { key: 4, value: 41, },
+    { key: 9, value: 90, },
   ]).unwrap()
   let sharded_set = ShardedSet::from_keys([4, 9, 16, 25], 3).unwrap()
   let sharded_map = ShardedIntMap::from_entries(
-    [{ key: 4, value: 40 }, { key: 9, value: 90 }, { key: 16, value: 160 }],
+    [{ key: 4, value: 40, }, { key: 9, value: 90, }, { key: 16, value: 160, }],
     3,
   ).unwrap()
   let bimap = StaticIntBiMap::from_entries([
-    { key: 4, value: 40 },
-    { key: 9, value: 90 },
+    { key: 4, value: 40, },
+    { key: 9, value: 90, },
   ]).unwrap()
 
   for length in 0..<set.encode_words().length() {

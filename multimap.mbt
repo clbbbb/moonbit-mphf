@@ -23,7 +23,7 @@ pub fn StaticIntMultiMap::from_entries(
     if entry.key < 0 {
       return Err(NegativeKey(entry.key))
     }
-    ordered.push({ key: entry.key, value: entry.value, input_index: index })
+    ordered.push({ key: entry.key, value: entry.value, input_index: index, })
   }
   ordered.sort_by((left, right) => {
     let key_order = left.key.compare(right.key)
@@ -71,7 +71,7 @@ pub fn StaticIntMultiMap::from_entries(
     }
   }
   offsets_by_slot[distinct_keys.length()] = rebuilt_values.length()
-  Ok({ mphf, keys_by_slot, offsets_by_slot, values: rebuilt_values })
+  Ok({ mphf, keys_by_slot, offsets_by_slot, values: rebuilt_values, })
 }
 
 ///|
@@ -132,7 +132,7 @@ pub fn StaticIntMultiMap::entries(
   let entries : Array[IntMultiEntry] = []
   for slot in 0..<self.keys_by_slot.length() {
     for index in self.offsets_by_slot[slot]..<self.offsets_by_slot[slot + 1] {
-      entries.push({ key: self.keys_by_slot[slot], value: self.values[index] })
+      entries.push({ key: self.keys_by_slot[slot], value: self.values[index], })
     }
   }
   entries
@@ -210,7 +210,7 @@ pub fn decode_static_int_multimap_words(
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  Ok({ mphf, keys_by_slot, offsets_by_slot, values })
+  Ok({ mphf, keys_by_slot, offsets_by_slot, values, })
 }
 
 ///|

@@ -18,7 +18,7 @@ pub fn StaticSetPatch::new(
       return Err(DuplicatePatchKey(key))
     }
   }
-  Ok({ additions: sorted_additions, removals: sorted_removals })
+  Ok({ additions: sorted_additions, removals: sorted_removals, })
 }
 
 ///|
@@ -88,7 +88,7 @@ pub fn StaticIntMapPatch::new(
       return Err(DuplicatePatchKey(entry.key))
     }
   }
-  Ok({ upserts: ordered_upserts, removals: sorted_removals })
+  Ok({ upserts: ordered_upserts, removals: sorted_removals, })
 }
 
 ///|

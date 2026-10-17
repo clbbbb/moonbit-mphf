@@ -30,7 +30,11 @@ pub fn decode_mphf_words(words : Array[Int]) -> Result[Mphf, MphfError] {
   let vertex_count = words[2]
   let seed = words[3]
   let attempts = words[4]
-  if key_count <= 0 || vertex_count < 3 || seed < 0 || attempts <= 0 {
+  if key_count <= 0 ||
+    key_count > vertex_count ||
+    vertex_count < 3 ||
+    seed < 0 ||
+    attempts <= 0 {
     return Err(InvalidMetadata)
   }
   if vertex_count > words.length() - 5 {
@@ -48,7 +52,7 @@ pub fn decode_mphf_words(words : Array[Int]) -> Result[Mphf, MphfError] {
     }
     values.push(value)
   }
-  Ok({ key_count, vertex_count, seed, attempts, values })
+  Ok({ key_count, vertex_count, seed, attempts, values, })
 }
 
 ///| Deterministically encode an exact static set.
@@ -104,7 +108,7 @@ pub fn decode_static_set_words(
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  Ok({ mphf, keys_by_slot })
+  Ok({ mphf, keys_by_slot, })
 }
 
 ///| Deterministically encode an exact integer map.
@@ -167,7 +171,7 @@ pub fn decode_static_int_map_words(
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  Ok({ mphf, keys_by_slot, values_by_slot })
+  Ok({ mphf, keys_by_slot, values_by_slot, })
 }
 
 ///|

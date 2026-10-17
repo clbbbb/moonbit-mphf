@@ -17,5 +17,9 @@ jobs:
         run: moon check --deny-warn
       - name: Test
         run: moon test --deny-warn
+      - name: Check external package encapsulation
+        run: python3 scripts/check_encapsulation.py
       - name: Build release
         run: moon build --release --deny-warn
+      - name: Run example
+        run: moon run cmd/main

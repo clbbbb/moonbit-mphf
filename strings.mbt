@@ -26,7 +26,7 @@ pub fn StaticStringSet::from_keys(
     let slot = mphf.slot_of_hash(stable_string_hash(key)).unwrap()
     keys_by_slot[slot] = key
   }
-  Ok({ mphf, keys_by_slot })
+  Ok({ mphf, keys_by_slot, })
 }
 
 ///| Test exact string membership; a stable-hash collision is ruled out by the
@@ -76,7 +76,7 @@ pub fn StaticStringIntMap::from_entries(
     keys_by_slot[slot] = entry.key
     values_by_slot[slot] = entry.value
   }
-  Ok({ mphf, keys_by_slot, values_by_slot })
+  Ok({ mphf, keys_by_slot, values_by_slot, })
 }
 
 ///|
@@ -114,7 +114,7 @@ fn unique_string_hashes(keys : Array[String]) -> Result[Array[Int], MphfError] {
   }
   let pairs : Array[StringHash] = []
   for key in keys {
-    pairs.push({ key, hash: stable_string_hash(key) })
+    pairs.push({ key, hash: stable_string_hash(key), })
   }
   pairs.sort_by((left, right) => left.hash.compare(right.hash))
   for index in 1..<pairs.length() {

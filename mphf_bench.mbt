@@ -15,7 +15,7 @@ fn benchmark_keys() -> Array[Int] {
 fn benchmark_multi_entries() -> Array[IntMultiEntry] {
   let entries : Array[IntMultiEntry] = []
   for index in 0..<8_000 {
-    entries.push({ key: index * 17 % 1_003, value: index * 31 + 7 })
+    entries.push({ key: index * 17 % 1_003, value: index * 31 + 7, })
   }
   entries
 }
@@ -25,7 +25,7 @@ fn benchmark_multi_entries() -> Array[IntMultiEntry] {
 fn benchmark_bimap_entries() -> Array[IntEntry] {
   let entries : Array[IntEntry] = []
   for index in 0..<2_000 {
-    entries.push({ key: index * 43 + 5, value: index * 47 + 11 })
+    entries.push({ key: index * 43 + 5, value: index * 47 + 11, })
   }
   entries
 }
@@ -63,5 +63,9 @@ test (b : @bench.T) {
   })
   b.bench(name="bimap_reverse_exact_hit", fn() {
     b.keep(bimap.get_by_value(93_964))
+  })
+  b.bench(name="create_4000_key_cursor", fn() { b.keep(set.cursor()) })
+  b.bench(name="scan_8000_multimap_values", fn() {
+    b.keep(multi.cursor().collect_remaining())
   })
 }

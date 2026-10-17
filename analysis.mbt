@@ -86,5 +86,5 @@ fn diff_sorted_keys(before : Array[Int], after : Array[Int]) -> KeySetDiff {
     added.push(after[right])
     right += 1
   }
-  { added, removed, retained }
+  { added, removed, retained, }
 }

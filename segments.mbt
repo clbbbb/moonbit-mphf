@@ -56,7 +56,7 @@ pub fn SegmentedSet::stats(self : SegmentedSet) -> SegmentStats {
   for segment in self.segments {
     count += segment.len()
   }
-  { segment_count: self.segments.length(), key_count: count }
+  { segment_count: self.segments.length(), key_count: count, }
 }
 
 ///|
@@ -181,7 +181,7 @@ pub fn SegmentedIntMap::stats(self : SegmentedIntMap) -> SegmentStats {
   for segment in self.segments {
     count += segment.len()
   }
-  { segment_count: self.segments.length(), key_count: count }
+  { segment_count: self.segments.length(), key_count: count, }
 }
 
 ///|
@@ -195,7 +195,7 @@ pub fn SegmentedIntMap::compact(
   for segment_index in 0..<self.segments.length() {
     let entries = self.segments[segment_index].entries_by_slot()
     for entry in entries {
-      layered.push({ key: entry.key, value: entry.value, segment_index })
+      layered.push({ key: entry.key, value: entry.value, segment_index, })
     }
   }
   layered.sort_by((left, right) => {
@@ -215,7 +215,7 @@ pub fn SegmentedIntMap::compact(
       final_entry = layered[index]
       index += 1
     }
-    retained.push({ key: final_entry.key, value: final_entry.value })
+    retained.push({ key: final_entry.key, value: final_entry.value, })
   }
   StaticIntMap::from_entries(retained)
 }

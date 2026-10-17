@@ -1,7 +1,8 @@
 ///|
 /// Create a persistent cursor positioned at the first slot-ordered set key.
+/// The index has private immutable storage, so creating a cursor is O(1).
 pub fn StaticSet::cursor(self : StaticSet) -> StaticSetCursor {
-  { keys_by_slot: self.keys_by_slot.copy(), next_slot: 0 }
+  { keys_by_slot: self.keys_by_slot, next_slot: 0, }
 }
 
 ///|
@@ -14,7 +15,7 @@ pub fn StaticSet::cursor_at(
   if slot < 0 || slot > self.keys_by_slot.length() {
     return Err(InvalidRange(slot, self.keys_by_slot.length()))
   }
-  Ok({ keys_by_slot: self.keys_by_slot.copy(), next_slot: slot })
+  Ok({ keys_by_slot: self.keys_by_slot, next_slot: slot, })
 }
 
 ///|
@@ -27,7 +28,7 @@ pub fn StaticSetCursor::next(self : StaticSetCursor) -> (Int?, StaticSetCursor) 
   let key = self.keys_by_slot[self.next_slot]
   (
     Some(key),
-    { keys_by_slot: self.keys_by_slot, next_slot: self.next_slot + 1 },
+    { keys_by_slot: self.keys_by_slot, next_slot: self.next_slot + 1, },
   )
 }
 
@@ -57,8 +58,8 @@ pub fn StaticSetCursor::collect_remaining(self : StaticSetCursor) -> Array[Int] 
 /// Create a persistent cursor positioned at the first slot-ordered map entry.
 pub fn StaticIntMap::cursor(self : StaticIntMap) -> StaticIntMapCursor {
   {
-    keys_by_slot: self.keys_by_slot.copy(),
-    values_by_slot: self.values_by_slot.copy(),
+    keys_by_slot: self.keys_by_slot,
+    values_by_slot: self.values_by_slot,
     next_slot: 0,
   }
 }
@@ -73,8 +74,8 @@ pub fn StaticIntMap::cursor_at(
     return Err(InvalidRange(slot, self.keys_by_slot.length()))
   }
   Ok({
-    keys_by_slot: self.keys_by_slot.copy(),
-    values_by_slot: self.values_by_slot.copy(),
+    keys_by_slot: self.keys_by_slot,
+    values_by_slot: self.values_by_slot,
     next_slot: slot,
   })
 }
@@ -128,9 +129,9 @@ pub fn StaticIntMultiMap::cursor(
   self : StaticIntMultiMap,
 ) -> StaticIntMultiMapCursor {
   {
-    keys_by_slot: self.keys_by_slot.copy(),
-    offsets_by_slot: self.offsets_by_slot.copy(),
-    values: self.values.copy(),
+    keys_by_slot: self.keys_by_slot,
+    offsets_by_slot: self.offsets_by_slot,
+    values: self.values,
     slot: 0,
     value_index: 0,
   }
@@ -173,22 +174,12 @@ pub fn StaticIntMultiMapCursor::next(
 }
 
 ///|
-/// Count values that have not been yielded. The loop keeps the operation
-/// allocation-free and remains correct even for a validated zero-length range.
+/// Count unread values in O(1). Returned cursors retain the global flattened
+/// value offset, including when the last value of a group has been consumed.
 pub fn StaticIntMultiMapCursor::remaining(
   self : StaticIntMultiMapCursor,
 ) -> Int {
-  let mut total = 0
-  for slot in self.slot..<self.keys_by_slot.length() {
-    let start = self.offsets_by_slot[slot]
-    let stop = self.offsets_by_slot[slot + 1]
-    if slot == self.slot && self.value_index > start {
-      total += stop - self.value_index
-    } else {
-      total += stop - start
-    }
-  }
-  total
+  self.values.length() - self.value_index
 }
 
 ///|

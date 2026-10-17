@@ -15,6 +15,7 @@ pub(all) enum MphfError {
   InvalidMetadata
   InvalidVertexValue(Int)
   InvalidBuildOption(Int)
+  CapacityExceeded(Int)
   InvalidShardCount(Int)
   InvalidRange(Int, Int)
   DuplicatePatchKey(Int)
@@ -45,18 +46,18 @@ pub(all) struct MphfBuildOptions {
 /// `slot_of_hash` maps every non-negative input to a slot. Membership must be
 /// checked separately, because an MPHF alone cannot recognize an unknown key.
 pub struct Mphf {
-  key_count : Int
-  vertex_count : Int
-  seed : Int
-  attempts : Int
-  values : Array[Int]
+  priv key_count : Int
+  priv vertex_count : Int
+  priv seed : Int
+  priv attempts : Int
+  priv values : Array[Int]
 }
 
 ///|
 /// An exact static membership set backed by an MPHF and slot-ordered keys.
 pub struct StaticSet {
-  mphf : Mphf
-  keys_by_slot : Array[Int]
+  priv mphf : Mphf
+  priv keys_by_slot : Array[Int]
 }
 
 ///|
@@ -76,17 +77,17 @@ pub(all) struct IntMultiEntry {
 ///|
 /// An exact immutable integer map with constant-time lookup after building.
 pub struct StaticIntMap {
-  mphf : Mphf
-  keys_by_slot : Array[Int]
-  values_by_slot : Array[Int]
+  priv mphf : Mphf
+  priv keys_by_slot : Array[Int]
+  priv values_by_slot : Array[Int]
 }
 
 ///|
 /// An exact immutable one-to-one integer mapping with independently checked
 /// forward and reverse MPHF indexes.
 pub struct StaticIntBiMap {
-  forward : StaticIntMap
-  reverse : StaticIntMap
+  priv forward : StaticIntMap
+  priv reverse : StaticIntMap
 }
 
 ///|
@@ -94,10 +95,10 @@ pub struct StaticIntBiMap {
 /// slice. The MPHF indexes distinct keys, while values are stored compactly in
 /// one contiguous array.
 pub struct StaticIntMultiMap {
-  mphf : Mphf
-  keys_by_slot : Array[Int]
-  offsets_by_slot : Array[Int]
-  values : Array[Int]
+  priv mphf : Mphf
+  priv keys_by_slot : Array[Int]
+  priv offsets_by_slot : Array[Int]
+  priv values : Array[Int]
 }
 
 ///|
@@ -112,16 +113,16 @@ pub(all) struct StringIntEntry {
 ///|
 /// collisions cannot produce a successful membership query.
 pub struct StaticStringSet {
-  mphf : Mphf
-  keys_by_slot : Array[String]
+  priv mphf : Mphf
+  priv keys_by_slot : Array[String]
 }
 
 ///|
 /// An exact immutable map from strings to integers.
 pub struct StaticStringIntMap {
-  mphf : Mphf
-  keys_by_slot : Array[String]
-  values_by_slot : Array[Int]
+  priv mphf : Mphf
+  priv keys_by_slot : Array[String]
+  priv values_by_slot : Array[Int]
 }
 
 ///|
@@ -171,67 +172,67 @@ pub(all) struct KeySetDiff {
 /// Segments are useful when source data arrives in immutable batches and a
 /// full rebuild should be deferred to an explicit compaction step.
 pub struct SegmentedSet {
-  segments : Array[StaticSet]
+  priv segments : Array[StaticSet]
 }
 
 ///|
 /// A read-only layered map. Later segments override earlier ones on lookup.
 pub struct SegmentedIntMap {
-  segments : Array[StaticIntMap]
+  priv segments : Array[StaticIntMap]
 }
 
 ///|
 /// A static set partitioned by `key % shard_count`. Sharding keeps builds and
 /// rebuilds bounded for datasets that are too large for one MPHF artifact.
 pub struct ShardedSet {
-  shard_count : Int
-  shards : Array[StaticSet?]
+  priv shard_count : Int
+  priv shards : Array[StaticSet?]
 }
 
 ///|
 /// A static integer map partitioned by `key % shard_count`.
 pub struct ShardedIntMap {
-  shard_count : Int
-  shards : Array[StaticIntMap?]
+  priv shard_count : Int
+  priv shards : Array[StaticIntMap?]
 }
 
 ///|
 /// A checked edit plan for rebuilding a static set from a previous snapshot.
-pub(all) struct StaticSetPatch {
-  additions : Array[Int]
-  removals : Array[Int]
+pub struct StaticSetPatch {
+  priv additions : Array[Int]
+  priv removals : Array[Int]
 }
 
 ///|
 /// A checked edit plan for rebuilding a static map from a previous snapshot.
-pub(all) struct StaticIntMapPatch {
-  upserts : Array[IntEntry]
-  removals : Array[Int]
+pub struct StaticIntMapPatch {
+  priv upserts : Array[IntEntry]
+  priv removals : Array[Int]
 }
 
 ///|
 /// A persistent cursor over slot-ordered set keys. Each `next` call returns a
 /// new cursor, so callers can safely retain checkpoints for later replay.
 pub struct StaticSetCursor {
-  keys_by_slot : Array[Int]
-  next_slot : Int
+  priv keys_by_slot : Array[Int]
+  priv next_slot : Int
 }
 
 ///|
 /// A persistent cursor over slot-ordered static map entries.
 pub struct StaticIntMapCursor {
-  keys_by_slot : Array[Int]
-  values_by_slot : Array[Int]
-  next_slot : Int
+  priv keys_by_slot : Array[Int]
+  priv values_by_slot : Array[Int]
+  priv next_slot : Int
 }
 
 ///|
 /// A persistent cursor over every entry of a static multimap. Equal-key values
 /// are visited consecutively in their original input order.
 pub struct StaticIntMultiMapCursor {
-  keys_by_slot : Array[Int]
-  offsets_by_slot : Array[Int]
-  values : Array[Int]
-  slot : Int
-  value_index : Int
+  priv keys_by_slot : Array[Int]
+  priv offsets_by_slot : Array[Int]
+  priv values : Array[Int]
+  priv slot : Int
+  priv value_index : Int
 }

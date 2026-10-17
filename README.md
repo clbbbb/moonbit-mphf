@@ -32,6 +32,7 @@ moon check --deny-warn
 moon test --deny-warn
 moon bench --release --deny-warn
 moon run cmd/main
+python scripts/check_encapsulation.py
 ```
 
 ## Guarantees and boundaries
@@ -41,7 +42,8 @@ moon run cmd/main
   string or cryptographic hashing policy.
 - Construction uses a deterministic, bounded-retry BDZ-style three-vertex
   hypergraph. It either returns a function or `ConstructionFailed`; it never
-  loops indefinitely.
+  loops indefinitely. The default policy allows up to 256 seeds; callers can
+  choose a smaller retry budget through `MphfBuildOptions`.
 - `Mphf::slot_of_hash` is only a slot function. Use `StaticSet::contains` or
   `StaticIntMap::get` when a query may contain unknown keys.
 - Word encodings are versioned and validate lengths, metadata, assignment
@@ -62,12 +64,31 @@ moon run cmd/main
 - Static set/map patches model immutable rebuilds explicitly and can be stored
   as validated word streams. Persistent cursors support checkpointed scans
   without mutating a published index.
+- Indexes, cursors, and validated patches hide their backing arrays and state.
+  Exported arrays are independent copies. Cursor successors share storage that
+  callers cannot mutate, so retaining a checkpoint preserves its remaining scan.
+  Creating a cursor and querying its remaining count take O(1); collecting a
+  suffix takes time proportional to the number of returned entries.
+- Slot sums, reverse assignments, and vertex-capacity calculations use 64-bit
+  intermediates. An unrepresentable vertex count returns `CapacityExceeded`;
+  decoding rejects MPHF metadata with more keys than vertices.
 - Build options expose the vertex-ratio/retry trade-off; `validate` and
   deterministic fingerprints provide artifact-integrity checks. Fingerprints
   detect accidental mismatch and are not cryptographic authentication.
 - This library deliberately does not support insertion, deletion, resizing,
   cryptographic hashing, or a network/database layer. Rebuild when the key
   set changes.
+
+## Compatibility of the snapshot fixes
+
+Internal struct fields are now private, including validated patch fields.
+Use `stats`, `keys_by_slot()`, `entries_by_slot()`, the patch accessors, and
+cursor methods instead of reading representation fields. Those accessors
+return scalar summaries or independent arrays. `MphfError` has a new
+`CapacityExceeded(Int)` variant for unrepresentable construction sizes.
+Existing word-format versions and artifacts produced by the builders remain
+compatible. These changes are not included in the published `0.1.0` package.
+See [the regression and resubmission notes](docs/acceptance-fixes.md).
 
 ## Provenance
 
@@ -81,6 +102,5 @@ The project itself is licensed under Apache-2.0; see [LICENSE](LICENSE).
 
 ## Publishing note
 
-The MoonBit package namespace is `clbbbb/moon-mphf`. The GitHub repository is
-`https://github.com/clbbbb/moonbit-mphf`; publishing to Mooncakes remains a
-separate release step.
+The MoonBit package `clbbbb/moon-mphf@0.1.0` is published on Mooncakes. The
+source repository is `https://github.com/clbbbb/moonbit-mphf`.

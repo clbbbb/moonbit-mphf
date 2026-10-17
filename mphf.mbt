@@ -17,7 +17,8 @@ priv struct PeelStep {
 
 ///|
 /// input cannot turn building a static table into an unbounded retry loop.
-let default_max_construction_attempts = 64
+/// Small residue shards can require more than 64 seeds at the default ratio.
+let default_max_construction_attempts = 256
 
 ///|
 /// Keep all mixer intermediates non-negative on every MoonBit backend.
@@ -55,7 +56,10 @@ pub fn Mphf::build_with_options(
     Err(error) => return Err(error)
   }
   let count = keys.length()
-  let vertices = vertex_count_for(count, options.vertices_per_key_milli)
+  let vertices = match vertex_count_for(count, options.vertices_per_key_milli) {
+    Ok(value) => value
+    Err(error) => return Err(error)
+  }
   for attempt in 0..<options.max_attempts {
     let seed = seed_for_attempt(attempt, options.initial_seed)
     match construct_values(keys, vertices, seed) {
@@ -100,10 +104,8 @@ pub fn Mphf::slot_of_hash(self : Mphf, key : Int) -> Int? {
     return None
   }
   let edge = edge_for(key, self.seed, self.vertex_count)
-  let value_sum = self.values[edge.first] +
-    self.values[edge.second] +
-    self.values[edge.third]
-  let slot = value_sum % self.key_count
+  let value_sum = edge_value_sum(self.values, edge, -1)
+  let slot = (value_sum % self.key_count.to_int64()).to_int()
   Some(slot)
 }
 
@@ -154,7 +156,7 @@ pub fn StaticSet::from_keys_with_options(
     let slot = mphf.slot_of_hash(key).unwrap()
     keys_by_slot[slot] = key
   }
-  Ok({ mphf, keys_by_slot })
+  Ok({ mphf, keys_by_slot, })
 }
 
 ///|
@@ -213,7 +215,7 @@ pub fn StaticIntMap::from_entries_with_options(
     keys_by_slot[slot] = entry.key
     values_by_slot[slot] = entry.value
   }
-  Ok({ mphf, keys_by_slot, values_by_slot })
+  Ok({ mphf, keys_by_slot, values_by_slot, })
 }
 
 ///|
@@ -283,8 +285,17 @@ fn validate_keys(keys : Array[Int]) -> Result[Unit, MphfError] {
 
 ///|
 /// Keep the 3-uniform hypergraph sparse enough that peeling normally succeeds.
-fn vertex_count_for(key_count : Int, vertices_per_key_milli : Int) -> Int {
-  key_count * vertices_per_key_milli / 1000 + 3
+/// Multiply before dividing in Int64, then check the array-index capacity.
+fn vertex_count_for(
+  key_count : Int,
+  vertices_per_key_milli : Int,
+) -> Result[Int, MphfError] {
+  let vertices = key_count.to_int64() * vertices_per_key_milli.to_int64() / 1000 +
+    3
+  if vertices > 0x7fffffff || vertices < 3 {
+    return Err(CapacityExceeded(key_count))
+  }
+  Ok(vertices.to_int())
 }
 
 ///| Construction retries use a deterministic stream so the same input is
@@ -358,7 +369,7 @@ fn construct_values(
       let edge_index = incident[vertex]
       if active[edge_index] {
         active[edge_index] = false
-        order.push({ edge: edge_index, vertex })
+        order.push({ edge: edge_index, vertex, })
         let edge = edges[edge_index]
         remove_incident(degree, incident, queue, edge.first, edge_index)
         remove_incident(degree, incident, queue, edge.second, edge_index)
@@ -376,10 +387,14 @@ fn construct_values(
     let step = order[index]
     let edge = edges[step.edge]
     let other_sum = edge_value_sum(values, edge, step.vertex)
-    values[step.vertex] = positive_mod(step.edge - other_sum, keys.length())
+    values[step.vertex] = positive_mod(
+      step.edge.to_int64() - other_sum,
+      keys.length(),
+    )
   }
   for edge_index in 0..<edges.length() {
-    let slot = edge_value_sum(values, edges[edge_index], -1) % keys.length()
+    let slot = (edge_value_sum(values, edges[edge_index], -1) %
+    keys.length().to_int64()).to_int()
     if slot != edge_index {
       return None
     }
@@ -417,16 +432,17 @@ fn remove_incident(
 
 ///|
 /// Sum all assignment values except one chosen vertex; passing `-1` sums all.
-fn edge_value_sum(values : Array[Int], edge : Edge, excluded : Int) -> Int {
-  let mut total = 0
+/// Three valid Int assignments can exceed Int range before the final modulus.
+fn edge_value_sum(values : Array[Int], edge : Edge, excluded : Int) -> Int64 {
+  let mut total : Int64 = 0
   if edge.first != excluded {
-    total += values[edge.first]
+    total += values[edge.first].to_int64()
   }
   if edge.second != excluded {
-    total += values[edge.second]
+    total += values[edge.second].to_int64()
   }
   if edge.third != excluded {
-    total += values[edge.third]
+    total += values[edge.third].to_int64()
   }
   total
 }
@@ -460,11 +476,11 @@ fn mix_hash(value : Int, salt : Int) -> Int {
 
 ///|
 /// Euclidean remainder for reverse assignment values.
-fn positive_mod(value : Int, modulus : Int) -> Int {
-  let remainder = value % modulus
+fn positive_mod(value : Int64, modulus : Int) -> Int {
+  let remainder = value % modulus.to_int64()
   if remainder < 0 {
-    remainder + modulus
+    (remainder + modulus.to_int64()).to_int()
   } else {
-    remainder
+    remainder.to_int()
   }
 }

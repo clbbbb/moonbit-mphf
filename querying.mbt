@@ -113,6 +113,7 @@ pub fn StaticIntMultiMap::get_all_many(
 /// no source-key manifest.
 pub fn Mphf::validate(self : Mphf) -> Result[Unit, MphfError] {
   if self.key_count <= 0 ||
+    self.key_count > self.vertex_count ||
     self.vertex_count < 3 ||
     self.seed < 0 ||
     self.attempts <= 0 ||

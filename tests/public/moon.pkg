@@ -1,0 +1,3 @@
+import {
+  "clbbbb/moon-mphf" @mphf,
+} for "test"
