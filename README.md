@@ -87,7 +87,8 @@ cursor methods instead of reading representation fields. Those accessors
 return scalar summaries or independent arrays. `MphfError` has a new
 `CapacityExceeded(Int)` variant for unrepresentable construction sizes.
 Existing word-format versions and artifacts produced by the builders remain
-compatible. These changes are not included in the published `0.1.0` package.
+compatible. These fixes are included starting with `0.2.0`; the older `0.1.0`
+package does not include them.
 See [the regression and resubmission notes](docs/acceptance-fixes.md).
 
 ## Provenance
@@ -102,5 +103,5 @@ The project itself is licensed under Apache-2.0; see [LICENSE](LICENSE).
 
 ## Publishing note
 
-The MoonBit package `clbbbb/moon-mphf@0.1.0` is published on Mooncakes. The
+The MoonBit package is `clbbbb/moon-mphf@0.2.0` on Mooncakes. The
 source repository is `https://github.com/clbbbb/moonbit-mphf`.
